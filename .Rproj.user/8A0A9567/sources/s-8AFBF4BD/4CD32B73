@@ -1,0 +1,24 @@
+{
+    "id": "4CD32B73",
+    "path": "~/R_workspace_USGS/floRa/R/evaluate_tree.R",
+    "project_path": "R/evaluate_tree.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1607122787602.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "cursorPosition": "3,2",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1607122973,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1607122973524,
+    "read_only": false,
+    "read_only_alternatives": []
+}

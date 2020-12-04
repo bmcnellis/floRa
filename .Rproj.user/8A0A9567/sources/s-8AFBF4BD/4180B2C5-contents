@@ -1,0 +1,269 @@
+#' @title S4 definition for DART-class objects
+#'
+#' @description
+#'
+#' NA
+#'
+#' @slot spatial_directory Directory path containing spatial files. Optional.
+#'
+#' @slot search_radius Radius in meters to search for reference pixels.
+#' @slot target_radius Radius in meters of target area
+#' @slot buffer_radius Radius in meters of target-reference buffer zone
+#' @slot n_topographic_matches Number of topographic matches to search for.
+#'                             Optional. See details.
+#' @slot n_cores Number of cores to use for parallelization. Optional.
+#' @slot PSCS_match Logical flag, default TRUE. Should pixels be matched on PSCS?
+#' @slot NLCD_filter Numeric of NLCD codes to filter by. Optional.
+#'
+#' @slot prime_mask Study area mask. Filename. Required.
+#' @slot nlcd_mask Land cover mask. Filename. Optional.
+#' @slot other_masks Other mask layers. List of filenames. Optional.
+#'
+#' @slot PSCS_control Particle size in the control section. Filename.
+#' @slot other_controls Other control covariates. List of filenames. Optional.
+#'
+#'
+#' @details
+#'
+#' Allowable spatial file formats:
+#'
+#'     GeoTIFF ('.tif')
+#'         Should be raster of 0/1 values, where 1 is retained and 0 omitted
+#'
+#' If `nlcd_mask` is omitted, it defaults to the prime_mask file in order to
+#' keep code from breaking.
+#'
+#' @references
+#'
+#' Nauman, T.W., Duniway, M.C., 2016.
+#' The Automated Reference Toolset: A Soil-Geomorphic Ecological Potential Matching Algorithm.
+#' Soil Science Society of America Journal 80, 1317–1328.
+#' https://doi.org/10.2136/sssaj2016.05.0151
+#'
+#' @author Steve Fick
+#' @author Travis Nauman
+#' @author Anna Knight
+#' @author Brandon McNellis
+#'
+#' @name DART
+#' @rdname DART
+NULL
+#' @rdname DART
+#' @export
+DART <- setClass(
+  'DART',
+  slots = list(
+
+    # Meta-data slots
+    spatial_directory = 'character',
+
+    # Parameter slots
+    search_radius = 'numeric', # in meters
+    target_radius = 'numeric', # in meters
+    buffer_radius = 'numeric', # in meters
+    n_topographic_matches = 'numeric',
+    n_cores = 'numeric',
+    PSCS_match = 'logical', # Should pixels have matching PSCS?
+    NLCD_filter = 'numeric', # NLCD codes to filter by
+
+    # Mask slots
+    prime_mask = 'character',
+    NLCD_mask = 'character',
+    other_masks = 'list',
+
+    # Control variable slots
+    PSCS_control = 'character',
+    other_controls = 'list',
+
+    # Topographic variable slots
+    topographic_variables = 'list',
+
+    # Landsat variable slots
+    landsat_variables = 'list'
+
+  )
+)
+#' @export
+setValidity('DART', function(object) {
+  errors <- character()
+
+  if (FALSE) {
+    msg <- paste0('error message')
+    errors <- c(errors, msg)
+  }
+
+  # returns
+  if (length(errors) == 0) {
+    TRUE
+  } else {
+    errors
+  }
+})
+#' @rdname DART
+#' @export
+setMethod('initialize',
+          signature(.Object = 'DART'),
+          function (.Object, ...) {
+            params <- list(...)
+
+            if ('spatial_directory' %in% names(params)) {
+              .Object@spatial_directory <- params$spatial_directory
+            } else {
+              .Object@spatial_directory <- character()
+            }
+
+            if ('search_radius' %in% names(params)) {
+              .Object@search_radius <- params$search_radius
+            } else {
+              .Object@search_radius <- 2000
+            }
+
+            if ('target_radius' %in% names(params)) {
+              .Object@target_radius <- params$target_radius
+            } else {
+              .Object@target_radius <- 30
+            }
+
+            if ('buffer_radius' %in% names(params)) {
+              .Object@buffer_radius <- params$buffer_radius
+            } else {
+              .Object@buffer_radius <- 90
+            }
+
+            if ('n_topographic_matches' %in% names(params)) {
+              .Object@n_topographic_matches <- params$n_topographic_matches
+            } else {
+              .Object@n_topographic_matches <- 100
+            }
+
+            if ('n_cores' %in% names(params)) {
+              .Object@n_cores <- params$n_cores
+            } else {
+              .Object@n_cores <- (parallel::detectCores() - 1)
+            }
+
+            if ('n_topographic_matches' %in% names(params)) {
+              .Object@n_topographic_matches <- params$n_topographic_matches
+            } else {
+              .Object@n_topographic_matches <- 100
+            }
+
+            if ('PSCS_match' %in% names(params)) {
+              .Object@PSCS_match <- params$PSCS_match
+            } else {
+              .Object@PSCS_match <- TRUE
+            }
+
+            if ('NLCD_mask' %in% names(params)) {
+              .Object@NLCD_mask <- params$NLCD_mask
+            } else {
+              .Object@NLCD_mask <- .Object@prime_mask
+            }
+
+            if ('other_masks' %in% names(params)) {
+              .Object@other_masks <- params$other_masks
+            } else {
+              .Object@other_masks <- list()
+            }
+
+            if ('other_controls' %in% names(params)) {
+              .Object@other_controls <- params$other_controls
+            } else {
+              .Object@othercontrols <- list()
+            }
+
+
+            .Object <- callNextMethod()
+            mt <- validObject(.Object)
+            if (isTRUE(mt)) {
+              return(.Object)
+            } else {
+              return(mt)
+            }
+          }
+)
+#' @rdname DART
+#' @export
+InitializeDART <- function(dir, template_number) {
+
+  # BEM: Keep this now for S Chambers to use in debugging
+
+  stopifnot(
+    dir.exists(dir),
+    is.integer(template_number),
+    template_number %in% c(1L)
+  )
+
+  out_DART <- switch(template_number,
+
+                    "1" = {
+                      new('DART',
+                          spatial_directory = dir,
+                          search_radius = 2000,
+                          NLCD_filter = c(11, 12, 21, 22, 24, 81, 82),
+                          n_cores = 1,
+
+                          prime_mask = file.path(dir, 'refrast.tif'),
+                          NLCD_mask = file.path(dir, "NLCDcl.tif"),
+                          other_masks = list(
+                            roadrast = file.path(dir, 'TIGER_2018_ucrb_mask.tif')
+                            # Missing SW ReGAP?
+                          ),
+
+                          # Control variable slots
+                          PSCS_control = file.path(dir, 'UCRB_mPSC_RFE_10plus.tif'),
+                          other_controls = list(
+                            ec = file.path(dir, 'ec_0to60cm_100xInt_ucrb.tif')
+                          ),
+
+                          # Topographic variable slots
+                          topographic_variables = list(
+                            NWNESS = file.path(dir, 'NWNESS.tif'),
+                            EASTNESS = file.path(dir, 'EASTNESS.tif'),
+                            #SOUTHNESS = file.path(dir, 'SOUTHNESS.tif'),
+                            NENESS = file.path(dir, 'NENESS.tif'),
+                            #ELEVm = file.path(dir, 'ELEVm.tif'),
+                            #TCURVLP3 = file.path(dir, 'TCURVLP3.tif'),
+                            #PCURVLP3 = file.path(dir, 'PCURVLP3.tif'),
+                            PROTINDEX = file.path(dir, 'PROTINDEX.tif'),
+                            #SLPLP3 = file.path(dir, 'SLPLP3.tif'),
+                            MRRTF = file.path(dir, 'MRRTF.tif'),
+                            MRVBF = file.path(dir, 'MRVBF.tif'),
+                            #TWILP3 = file.path(dir, 'TWILP3.tif'),
+                            #CALP3 = file.path(dir, 'CALP3.tif'),
+                            LFELEMS = file.path(dir, 'LFELEMS.tif'),
+
+                            RELHT1 = file.path(dir, 'RELHT1.tif'),
+                            #RELHT2 = file.path(dir, 'RELHT2.tif'),
+                            #RELHT4 = file.path(dir, 'RELHT4.tif'),
+                            #RELHT8 = file.path(dir, 'RELHT8.tif'),
+                            #RELHT16 = file.path(dir, 'RELHT16.tif'),
+                            RELHT32 = file.path(dir, 'RELHT32.tif'),
+                            RELHT64 = file.path(dir, 'RELHT64.tif'),
+                            RELHT128 = file.path(dir, 'RELHT128.tif'),
+
+                            #RELMNHT1 = file.path(dir, 'RELMNHT1.tif'),
+                            RELMNHT2 = file.path(dir, 'RELMNHT2.tif'),
+                            #RELMNHT4 = file.path(dir, 'RELMNHT4.tif'),
+                            RELMNHT8 = file.path(dir, 'RELMNHT8.tif')
+                            #RELMNHT16 = file.path(dir, 'RELMNHT16.tif'),
+                            #RELMNHT32 = file.path(dir, 'RELMNHT32.tif'),
+                            #RELMNHT64 = file.path(dir, 'RELMNHT64.tif'),
+                            #RELMNHT128 = file.path(dir, 'RELMNHT128.tif')
+
+                          ),
+
+                          landsat_variables = list(
+                            # Landsat variable slots
+                            redbluend = file.path(dir, 'redblue.tif'),
+                            redgreennd = file.path(dir, 'redgreen.tif'),
+                            redswir1nd = file.path(dir, 'redswir1.tif')
+                            #swir1nirnd = file.path(dir, 'swir1nir.tif'),
+                            #swir1swir2nd = file.path(dir, 'swir1swir2.tif')
+                          )
+                      ) # end new DART
+                    }, # end case == 1
+  ) # end switch
+
+  return(out_DART)
+}

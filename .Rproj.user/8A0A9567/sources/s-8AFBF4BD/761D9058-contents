@@ -1,0 +1,89 @@
+#' @title S4 definition for key-class objects
+#'
+#' @description
+#'
+#' key-class objects connect flora-class objects to taxon-class objects
+#'
+#' @slot tree data.tree object specifying
+#'
+#' @details
+#'
+#' `system` can be one of "Cronquist", "APG1", "APG3", or "Unknown"
+#'
+#' `key` must be a key-class object
+#'
+#' @author Brandon McNellis
+#'
+#' @name flora
+#' @rdname flora
+NULL
+#' @rdname flora
+#' @export
+flora <- setClass(
+  'flora',
+  slots = list(
+
+    name = 'character',
+    system = 'character',
+    publisher = 'character',
+    date = 'Date',
+    ISBN = 'integer'
+
+  )
+)
+#' @export
+setValidity('flora', function(object) {
+  errors <- character()
+
+  if (FALSE) {
+    msg <- paste0('error message')
+    errors <- c(errors, msg)
+  }
+
+  if (!(object@system %in% .allowableSystems())) {
+    msg <- paste0('Taxonomic system not recognized')
+    errors <- c(errors, msg)
+  }
+
+  # returns
+  if (length(errors) == 0) {
+    TRUE
+  } else {
+    errors
+  }
+})
+#' @rdname flora
+#' @export
+setMethod('initialize',
+          signature(.Object = 'flora'),
+          function (.Object, ...) {
+            params <- list(...)
+
+            if ('system' %in% names(params)) {
+              .Object@system <- params$system
+            } else {
+              # This is just here as an example check
+              .Object@system <- 'Unknown'
+            }
+
+            .Object <- callNextMethod()
+            mt <- validObject(.Object)
+            if (isTRUE(mt)) {
+              return(.Object)
+            } else {
+              return(mt)
+            }
+          }
+)
+#' @rdname flora
+#' @export
+.allowableSystems <- function() {
+  allowable_systems <- c(
+    'Cronquist',
+    'APG1',
+    'APG3',
+    'Unknown'
+  )
+
+  return(allowable_systems)
+}

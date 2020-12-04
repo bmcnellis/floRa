@@ -1,0 +1,25 @@
+{
+    "id": "D41EA0D3",
+    "path": "~/R_workspace_USGS/floRa/exec/define_iris_taxons.R",
+    "project_path": "exec/define_iris_taxons.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1607120586558.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "tempName": "Untitled1",
+        "cursorPosition": "19,74",
+        "scrollLine": "13"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1607123798,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1607123798604,
+    "read_only": false,
+    "read_only_alternatives": []
+}
